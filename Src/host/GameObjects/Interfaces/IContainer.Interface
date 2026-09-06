@@ -397,7 +397,7 @@ func(createItemInContainer)
 	_chance = clamp(_chance,0,100);
 
 	if (_count == 1) then {
-		if !prob(_chance) exitWith {nullPtr};
+		if !prob_new(_chance) exitWith {nullPtr};
 		private _o = [_type,this] call createItemInContainer;
 		if !isNullObject(_o) then {
 			{
@@ -435,7 +435,7 @@ func(createItemInContainer)
 		private _listObj = [];
 		for "_i" from 1 to _count do {
 			
-			if !prob(_chance) then {continue};
+			if !prob_new(_chance) then {continue};
 
 			_o = [_type,this] call createItemInContainer;
 			if !isNullObject(_o) then {
