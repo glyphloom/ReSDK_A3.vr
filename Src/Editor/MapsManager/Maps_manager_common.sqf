@@ -344,7 +344,7 @@ function(mm_handleObjectSave)
 				hashSet_add(mm_internal_map_marks,_hashItem get "mark");
 			};
 
-			_objcustomdata pushBackUnique (format["%3[%1,%2] call (%1 getvariable '"+PROTOTYPE_VAR_NAME+"' getvariable 'createItemInContainer');%4","%1",_stringStruct,_pre,_post]);
+			_objcustomdata pushBack (format["%3[%1,%2] call (%1 getvariable '"+PROTOTYPE_VAR_NAME+"' getvariable 'createItemInContainer');%4","%1",_stringStruct,_pre,_post]);
 		} foreach _containerContent;
 	};
 
