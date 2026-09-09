@@ -21,7 +21,7 @@ func(initializeDoorLock)
 	objParams();
 	if isNullReference(this) exitWith {};
 	if (getSelf(lockInitialized) || {!callSelf(hasMechanicalLock)}) exitWith {};
-	if !callSelf(isInWorld) exitWith {};
+	if (!callSelf(isInWorld) || {isNullReference(getSelf(loc))}) exitWith {};
 	setSelf(lockInitialized,true);
 	private _type = getSelf(lockType);
 	if (_type == 0) exitWith {setSelf(isLocked,false)};
