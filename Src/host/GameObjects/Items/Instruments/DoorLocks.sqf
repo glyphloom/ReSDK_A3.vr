@@ -15,9 +15,9 @@ key_sameAccess = {
 doorLock_createPair = {
 	params ["_class","_pos",["_keyData",[]]];
 	private _inWorld = equalTypes(_pos,[]);
-	private _lock = ifcheck(_inWorld,[_class,_pos] call createItemInWorld,[_class,_pos] call createItemInContainer);
+	private _lock = ifcheck(_inWorld,[_class arg _pos] call createItemInWorld,[_class arg _pos] call createItemInContainer);
 	if isNullReference(_lock) exitWith {[]};
-	private _key = ifcheck(_inWorld,["Key",_pos vectorAdd [0.12,0,0]] call createItemInWorld,["Key",_pos] call createItemInContainer);
+	private _key = ifcheck(_inWorld,["Key" arg _pos vectorAdd [0.12 arg 0 arg 0]] call createItemInWorld,["Key" arg _pos] call createItemInContainer);
 	if isNullReference(_key) exitWith {delete(_lock); []};
 	if (count _keyData == 0) then {
 		private _roll = random 100;
