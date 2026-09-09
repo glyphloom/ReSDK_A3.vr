@@ -337,6 +337,60 @@ localCommand("escnative")
 	input_internal_handleNativeEsc = (parseNumber arguments) > 0;
 };
 
+#ifdef DEBUG
+decl(widget) cd_modelPosWidget = widgetNull;
+decl(int) cd_modelPosUpdate = -1;
+decl(string) cd_modelPosSelection = "";
+
+decl(void())
+cd_modelPosStop = {
+	if (cd_modelPosUpdate != -1) then {stopUpdate(cd_modelPosUpdate)};
+	cd_modelPosUpdate = -1;
+	if !isNullReference(cd_modelPosWidget) then {[cd_modelPosWidget] call deleteWidget};
+	cd_modelPosWidget = widgetNull;
+};
+
+decl(void())
+cd_modelPosOnUpdate = {
+	if (isNullReference(cd_modelPosWidget) || {isNullReference(player)}) exitWith {call cd_modelPosStop};
+	private _hit = [] call interact_getIntersectData;
+	_hit params ["_object","_point"];
+	private _text = "Наведи центр экрана на поверхность объекта";
+	if !isNullReference(_object) then {
+		private _owner = _object getVariable ["doorLockOwner",objNull];
+		if !isNullReference(_owner) then {
+			_text = "Наведи центр экрана на полотно двери, а не на замок";
+		} else {
+			private _selection = cd_modelPosSelection;
+			private _modelPoint = _object worldToModel _point;
+			private _formatVector = {"[" + ((_this apply {_x toFixed 4}) joinString ", ") + "]"};
+			_text = format["%1<br/>modelPosition = %2",(getModelInfo _object) select 0,_modelPoint call _formatVector];
+			if (_selection == "" || {_selection in selectionNames _object}) then {
+				private _offset = _modelPoint;
+				if (_selection != "") then {_offset = _offset vectorDiff (_object selectionPosition _selection)};
+				_text = _text + format["<br/>lockSelection = '%1'<br/>lockPosition = %2",_selection,_offset call _formatVector];
+			} else {
+				_text = _text + "<br/>У этой модели нет указанного селекта";
+			};
+		};
+	};
+	[cd_modelPosWidget,"<t align='center'>" + _text + "<br/>modelpos off — выключить</t>"] call widgetSetText;
+};
+
+localCommand("modelpos")
+{
+	call cd_modelPosStop;
+	if (arguments == "off") exitWith {};
+	cd_modelPosSelection = arguments;
+	cd_modelPosWidget = [getGUI,TEXT,[25,54,50,18]] call createWidget;
+	cd_modelPosWidget setBackgroundColor (["back"] call ct_getValue);
+	call cd_modelPosOnUpdate;
+	if !isNullReference(cd_modelPosWidget) then {
+		cd_modelPosUpdate = startUpdate(cd_modelPosOnUpdate,0.05);
+	};
+};
+#endif
+
 localCommand("debugvars")
 {
 	[(parseNumber arguments) > 0] call clistat_setLogVars;
