@@ -193,6 +193,11 @@ noe_client_interp_start = {
 		_iObj setvariable ["_eventOnDelete",_tEventOnDelete];
 		_iObj setvariable ["_eventOnFrame",_tEventOnFrame];
 		_objects = [_sObj,_dObj];
+		private _doorLockData = _objTargetInfo getVariable ["doorLockVisualData",[]];
+		if (count _doorLockData > 0) then {
+			[_iObj,_doorLockData] call doorLock_updateVisuals;
+			_tEventOnDelete pushBack [[_iObj],doorLock_clearVisuals];
+		};
 
 		//setup interpolation speed
 		_ispdIdx = _options find "ispd";
@@ -247,11 +252,13 @@ noe_client_interp_start = {
 				// _ppos = getposatl _x;
 				// _x setposatl [0,0,0]; //! raise position error
 				_x hideObject true;
+				[_x,true] call doorLock_setVisualsHidden;
 				_tEventOnDelete pushBack [
 					[_x,_ppos],{
 						params ["_o","_ppos"];
 						//_o setposatl _ppos;
 						_o hideObject false;
+						[_o,false] call doorLock_setVisualsHidden;
 					}
 				];
 				continue;

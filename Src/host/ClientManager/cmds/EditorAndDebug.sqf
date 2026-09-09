@@ -6,6 +6,19 @@
 #include <..\..\Gender\Gender.hpp>
 
 #ifdef DEBUG
+	addCommandWithDescription("lockpos",PUBLIC_COMMAND,"Координаты точки замка относительно двери; аргумент — селект")
+	{
+		checkIfMobExists();
+		callSelf(generateLastInteractOnServer);
+		private _target = callSelf(getLastInteractTarget);
+		if (isNullReference(_target) || {!callFunc(_target,isDoor)}) exitWith {};
+		private _mesh = callFunc(_target,getBasicLoc);
+		private _point = _mesh worldToModel callSelf(getLastInteractEndPos);
+		private _selection = ifcheck(args == "",callFunc(_target,getLockSelection),args);
+		private _offset = _point vectorDiff (_mesh selectionPosition _selection);
+		callSelfParams(localSay,format["%1: lockPosition=%2; lockSelection=%3; modelPosition=%4; selections=%5. Настраивать на закрытой двери." arg callFunc(_target,getClassName) arg _offset arg _selection arg _point arg selectionNames _mesh] arg "system");
+	};
+
 	
 	addCommand("container_errinfo",PUBLIC_COMMAND)
 	{
