@@ -449,7 +449,8 @@ noe_updateObjectByteArr = {
 	//указатель
 	private _dat = [getVar(_itRef,pointer)];
 	//флаги
-	_dat pushBack ((_obj getvariable "flags") + ifcheck(count (_obj getVariable ["doorLockData",[]]) > 0,doorLockObj_true,0));
+	private _doorLockData = _obj getVariable ["doorLockData",[]];
+	_dat pushBack ((_obj getvariable "flags") + ifcheck(count _doorLockData > 0,doorLockObj_true,0));
 	//ссылка на модель
 	_dat pushBack ([getVar(_itRef,model)] call model_getAssoc); //создать ассоциации
 	//позиция
@@ -476,8 +477,8 @@ noe_updateObjectByteArr = {
 		_dat append (_obj getVariable ["radio",[null]])
 	};
 
-	if (count (_obj getVariable ["doorLockData",[]]) > 0) then {
-		_dat pushBack (_obj getVariable "doorLockData");
+	if (count _doorLockData > 0) then {
+		_dat pushBack _doorLockData;
 	};
 	_obj setvariable ["bytearr",_dat];
 };
