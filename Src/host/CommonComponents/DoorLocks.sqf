@@ -3,6 +3,8 @@
 // sdk.relicta.ru
 // ======================================================
 
+#include <..\engine.hpp>
+
 // Both faces belong to the same item. Descriptor travels with the door chunk.
 doorLock_clearVisuals = {
 	params ["_door"];
