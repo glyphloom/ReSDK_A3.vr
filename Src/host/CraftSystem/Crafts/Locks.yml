@@ -4,7 +4,7 @@
   options:
     station: locks
     skill_bonus: -2
-    craft_duration: "10"
+    craft_duration: from_skill(10,10)
   required:
     skills: {engineering: 10}
     components:
@@ -20,7 +20,7 @@
   options:
     station: locks
     skill_bonus: -1
-    craft_duration: "15"
+    craft_duration: from_skill(15,15)
   required:
     skills: {engineering: 13}
     components:
@@ -35,7 +35,7 @@
   category: Other
   options:
     station: locks
-    craft_duration: "15"
+    craft_duration: from_skill(15,15)
   required:
     skills: {engineering: 10}
     components:
