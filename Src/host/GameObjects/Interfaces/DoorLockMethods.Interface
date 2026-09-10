@@ -80,10 +80,23 @@ func(getLockPlacementData)
 	} else {
 		_leafCenter = _mesh selectionPosition [_selection,"ViewGeometry","AveragePoint"];
 		if (_leafCenter isEqualTo [0,0,0]) then {_leafCenter = _mesh selectionPosition [_selection,"Geometry","AveragePoint"]};
-		private _anchor = _mesh selectionPosition [_selection,"Memory","AveragePoint"];
-		if (count _position == 0) then {_position = _leafCenter vectorDiff _anchor};
+		private _anchor = _leafCenter;
+		if ((tolower _selection) in ((_mesh selectionNames "Memory") apply {tolower _x})) then {
+			_anchor = _mesh selectionPosition [_selection,"Memory","AveragePoint"];
+		};
+		// Normalize the descriptor to a closed-leaf model coordinate. Explicit
+		// author values remain offsets from the configured selection anchor.
+		if (count _position == 0) then {
+			_position = _leafCenter;
+		} else {
+			_position = _anchor vectorAdd _position;
+		};
 	};
-	[_position,_selection,_leafCenter]
+	private _leafBasis = [[0,1,0],[0,0,1]];
+	if (_selection != "") then {
+		_leafBasis = ([_mesh,_selection] call doorLock_getSelectionTransform) select 1;
+	};
+	[_position,_selection,_leafCenter,_leafBasis]
 };
 
 func(syncDoorLockVisual)
@@ -94,8 +107,8 @@ func(syncDoorLockVisual)
 	private _data = [];
 	private _lock = getSelf(doorLock);
 	if !isNullReference(_lock) then {
-		callSelf(getLockPlacementData) params ["_position","_selection"];
-		_data = [getVar(_lock,pointer),getVar(_lock,model),_position,_selection,getSelf(lockDepth),getSelf(lockDirection)];
+		callSelf(getLockPlacementData) params ["_position","_selection","_leafCenter","_leafBasis"];
+		_data = [getVar(_lock,pointer),getVar(_lock,model),_position,_selection,getSelf(lockDepth),getSelf(lockDirection),_leafCenter,_leafBasis,"v2"];
 	};
 	_mesh setVariable ["doorLockData",_data];
 	private _visuals = [_mesh,_data] call doorLock_updateVisuals;

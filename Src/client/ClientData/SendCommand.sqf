@@ -418,6 +418,7 @@ cd_geomBoundsStop = {
 
 decl(void())
 cd_geomBoundsOnUpdate = {
+	updateParams();
 	if isNullReference(cd_geomBoundsObject) exitWith {call cd_geomBoundsStop};
 	private _bounds = ifcheck(cd_geomBoundsLod == "",boundingBoxReal cd_geomBoundsObject,boundingBoxReal [cd_geomBoundsObject,cd_geomBoundsLod]);
 	[cd_geomBoundsObject,cd_geomBoundsColor,3,_bounds] call debug_drawBoundingBox;

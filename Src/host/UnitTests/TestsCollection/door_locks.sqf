@@ -46,6 +46,16 @@ TEST(DoorLockFaceTransformIsVerticalAndOpposed)
 	EXPECT(abs ((_rotatedDir select 2) - 1) < 0.00001);
 }
 
+TEST(DoorLockSelectionBasisTransformsRoundTrip)
+{
+	private _basis = [[1,0,0],[0,0,1]];
+	private _source = [0.25,-0.5,1.5];
+	private _world = [_basis,_source] call doorLock_transformVector;
+	private _roundTrip = [_basis,_world] call doorLock_inverseTransformVector;
+	EXPECT(vectorMagnitude (_roundTrip vectorDiff _source) < 0.00001);
+	EXPECT(abs ((([_basis,[0,0,1]] call doorLock_transformVector) select 2) - 1) < 0.00001);
+}
+
 TEST(StrongLockDoesNotMakePiercingImmune)
 {
 	// Virtual objects only: no world meshes, targeting, sounds or animation.
