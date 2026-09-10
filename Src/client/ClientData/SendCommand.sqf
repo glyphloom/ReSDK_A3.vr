@@ -401,7 +401,72 @@ localCommand("modelpos")
 		cd_modelPosUpdate = startUpdate(cd_modelPosOnUpdate,0.05);
 	};
 };
+
+localCommand("diaggeom")
+{
+	private _modeName = tolower arguments;
+	private _modes = createHashMapFromArray [
+		["normal","Normal"],
+		["geometry","Geometry"],
+		["view","ViewGeometry"],
+		["viewgeometry","ViewGeometry"],
+		["fire","FireGeometry"],
+		["firegeometry","FireGeometry"],
+		["wire","Wire"]
+	];
+	private _mode = _modes getOrDefault [_modeName,""];
+	if (_mode == "") exitWith {["diaggeom normal|geometry|view|fire|wire. Только Arma diagnostic executable: multiplayer в нём отключён; режим относится ко всей сцене, а не к объекту под курсором.","system"] call chatPrint};
+	[format["diag_drawMode '%1': запрос отправлен движку. Работает только в Arma diagnostic executable (multiplayer отключён) и меняет отображение всей сцены; wire циклически переключает режим." arg _mode],"system"] call chatPrint;
+	diag_drawMode _mode;
+};
 #endif
+
+decl(mesh) cd_geomBoundsObject = objNull;
+decl(string) cd_geomBoundsLod = "Geometry";
+decl(vector4) cd_geomBoundsColor = [0,1,0,1];
+decl(int) cd_geomBoundsUpdate = -1;
+
+decl(void())
+cd_geomBoundsStop = {
+	if (cd_geomBoundsUpdate != -1) then {stopUpdate(cd_geomBoundsUpdate)};
+	cd_geomBoundsUpdate = -1;
+	cd_geomBoundsObject = objNull;
+};
+
+decl(void())
+cd_geomBoundsOnUpdate = {
+	if isNullReference(cd_geomBoundsObject) exitWith {call cd_geomBoundsStop};
+	private _bounds = ifcheck(cd_geomBoundsLod == "",boundingBoxReal cd_geomBoundsObject,boundingBoxReal [cd_geomBoundsObject,cd_geomBoundsLod]);
+	[cd_geomBoundsObject,cd_geomBoundsColor,3,_bounds] call debug_drawBoundingBox;
+};
+
+localCommand("geombounds")
+{
+	private _modeName = tolower arguments;
+	if (_modeName == "") then {_modeName = "geometry"};
+	call cd_geomBoundsStop;
+	if (_modeName == "off") exitWith {["geombounds: отображение выключено.","system"] call chatPrint};
+	private _modes = createHashMapFromArray [
+		["geometry",["Geometry",[0,1,0,1],"Geometry"]],
+		["view",["ViewGeometry",[0,0.6,1,1],"ViewGeometry"]],
+		["fire",["FireGeometry",[1,0.2,0.2,1],"FireGeometry"]],
+		["visual",["",[1,0.8,0,1],"visual model"]]
+	];
+	private _config = _modes getOrDefault [_modeName,[]];
+	if (count _config == 0) exitWith {["geombounds geometry|view|fire|visual|off. Рисуется только model-space bounding box выбранного LOD, не полигоны и не wireframe.","system"] call chatPrint};
+	private _hit = [] call interact_getIntersectData;
+	private _object = _hit param [0,objNull];
+	if isNullReference(_object) exitWith {["geombounds: наведите центр экрана на объект.","system"] call chatPrint};
+	_object = _object getVariable ["ngo_src",_object];
+	_config params ["_lod","_color","_label"];
+	cd_geomBoundsObject = _object;
+	cd_geomBoundsLod = _lod;
+	cd_geomBoundsColor = _color;
+	cd_geomBoundsUpdate = startUpdate(cd_geomBoundsOnUpdate,0);
+	private _modelName = (getModelInfo _object) select 0;
+	private _bounds = ifcheck(_lod == "",boundingBoxReal _object,boundingBoxReal [_object,_lod]);
+	[format["geombounds: %1, объект %2, bounds=%3. Это model-space bounding box LOD, не collision-полигоны и не wireframe; geombounds off — выключить." arg _label arg _modelName arg _bounds],"system"] call chatPrint;
+};
 
 localCommand("debugvars")
 {
