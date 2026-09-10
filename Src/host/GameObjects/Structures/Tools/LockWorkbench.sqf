@@ -7,13 +7,19 @@
 #include <..\..\..\struct.hpp>
 #include <..\..\GameConstants.hpp>
 
-class(LockWorkbench) extends(Workbench)
-	var(name,"Слесарный верстак");
-	getter_func(getCraftStation,"locks");
+class(CraftStation) extends(TableBase)
+	var(name,"Ремесленная станция");
+	getter_func(getCraftStation,"");
 	// Model-local tabletop bounds; tune in ReEditor for workbench_01_f.
 	var(tableBounds,[[-1.25 arg -0.43 arg 0.45] arg [1.25 arg 0.43 arg 0.85]]);
 	var(craftJob,[]);
 	var(handleCraftUpdate,-1);
+
+	func(__editor_renderbbx)
+	{
+		params ["_convfunc"];
+		"tableBounds" call _convfunc
+	};
 
 	func(destructor)
 	{
@@ -38,18 +44,40 @@ class(LockWorkbench) extends(Workbench)
 		}
 	};
 
+	func(clearStationCraft)
+	{
+		objParams();
+		if (count getSelf(craftJob) > 0) then {
+			private _usr = getSelf(craftJob) select 0;
+			if (!isNullReference(_usr) && {equals(getVar(_usr,progressData) select 0,this)}) then {callFuncParams(_usr,stopProgress,true)};
+		};
+		setSelf(craftJob,[]);
+		callSelfParams(stopUpdateMethod,"handleCraftUpdate");
+	};
+endclass
+
+editor_attribute("EditorGenerated")
+class(ArtificerWorkbench) extends(CraftStation)
+	var(name,"Слесарный верстак");
+	var(model,"a3\structures_f_heli\furniture\workbench_01_f.p3d");
+	var(material,"MatMetal");
+	getter_func(getCraftStation,"locks");
+	getter_func(canUseAsCraftSpace,true);
+	getter_func(getAllowedCraftCategories,[CRAFT_CATEGORY_ID_OTHER]);
+
 	func(startStationCraft)
 	{
 		objParams_2(_usr,_recipe);
 		if !callSelf(isInWorld) exitWith {};
-		if (callFuncParams(_usr,getDistanceTo,this) > 2) exitWith {};
+		if (callFuncParams(_usr,getDistanceTo,this) > 2) exitWith {callFuncParams(_usr,localSay,"Слишком далеко от верстака." arg "error")};
 		if (count getSelf(craftJob) > 0) exitWith {
 			callFuncParams(_usr,localSay,"Верстак занят." arg "error");
 		};
-		if !(_recipe callp(canSeeRecipe,_usr arg this)) exitWith {};
+		if !(_recipe callp(canSeeRecipe,_usr arg this)) exitWith {callFuncParams(_usr,localSay,"Этот рецепт здесь недоступен." arg "error")};
 		private _items = callSelf(getTableItems);
 		private _keys = _items select {isTypeOf(_x,Key)};
 		private _keyData = [];
+		private _repairData = [];
 		if (count _keys > 0) then {
 			private _key = _keys select 0;
 			_keyData = [array_copy(getVar(_key,keyOwner)),getVar(_key,name)];
@@ -71,8 +99,17 @@ class(LockWorkbench) extends(Workbench)
 		if ((_components findIf {!(_x callv(canCraftFromIngredient))}) != -1) exitWith {
 			callFuncParams(_usr,localSay,"Разложите на столешнице все необходимые материалы и инструменты." arg "error");
 		};
+		{
+			private _foundItems = _x getv(_foundItems);
+			private _foundBroken = _foundItems findIf {isTypeOf(_x select 0,BrokenDoorLock)};
+			if (_foundBroken != -1) exitWith {
+				private _sourceLock = (_foundItems select _foundBroken) select 0;
+				_repairData = [getVar(_sourceLock,repairClass),array_copy(getVar(_sourceLock,keyTypes)),_sourceLock];
+			};
+		} foreach _components;
 		private _duration = _usr call (_recipe getv(opt_craft_duration));
-		setSelf(craftJob,[_usr arg _recipe arg _components arg _keyData arg getPosWorld getSelf(loc) arg vectorDir getSelf(loc) arg (tickTime + _duration)]);
+		setSelf(craftJob,[_usr arg _recipe arg _components arg _keyData arg _repairData arg getPosWorld getSelf(loc) arg vectorDir getSelf(loc) arg (tickTime + _duration)]);
+		callFuncParams(_usr,meSay,"начинает работать за верстаком.");
 		callFuncParams(_usr,startProgress,this arg "target.finishStationCraft" arg _duration arg INTERACT_PROGRESS_TYPE_FULL);
 		callSelfParams(startUpdateMethod,"updateStationCraft" arg "handleCraftUpdate");
 	};
@@ -80,7 +117,7 @@ class(LockWorkbench) extends(Workbench)
 	func(isStationCraftValid)
 	{
 		objParams();
-		getSelf(craftJob) params ["_usr","_recipe","_components","_keyData","_pos","_dir"];
+		getSelf(craftJob) params ["_usr","_recipe","_components","_keyData","_repairData","_pos","_dir"];
 		if (isNullReference(_usr) || {!callSelf(isInWorld)}) exitWith {false};
 		if (callFuncParams(_usr,getDistanceTo,this) > 2) exitWith {false};
 		if (getPosWorld getSelf(loc) distance _pos > 0.02 || {vectorDir getSelf(loc) distance _dir > 0.01}) exitWith {false};
@@ -99,20 +136,9 @@ class(LockWorkbench) extends(Workbench)
 		_valid && {count _keys > 0} && {(_keys findIf {!([getVar(_x,keyOwner),_keyData select 0] call key_sameAccess)}) == -1}
 	};
 
-	func(clearStationCraft)
-	{
-		objParams();
-		if (count getSelf(craftJob) > 0) then {
-			private _usr = getSelf(craftJob) select 0;
-			if (!isNullReference(_usr) && {equals(getVar(_usr,progressData) select 0,this)}) then {callFuncParams(_usr,stopProgress,true)};
-		};
-		setSelf(craftJob,[]);
-		callSelfParams(stopUpdateMethod,"handleCraftUpdate");
-	};
-
 	func(updateStationCraft)
 	{
-		objParams();
+		updateParams();
 		if (count getSelf(craftJob) == 0) exitWith {callSelf(clearStationCraft)};
 		private _usr = getSelf(craftJob) select 0;
 		private _active = !isNullReference(_usr) && {equals(getVar(_usr,progressData) select 0,this)};
@@ -126,7 +152,7 @@ class(LockWorkbench) extends(Workbench)
 	{
 		objParams_1(_usr);
 		if (count getSelf(craftJob) == 0) exitWith {};
-		getSelf(craftJob) params ["_worker","_recipe","_components","_keyData","_pos","_dir","_end"];
+		getSelf(craftJob) params ["_worker","_recipe","_components","_keyData","_repairData","_pos","_dir","_end"];
 		if (!equals(_worker,_usr) || {tickTime < _end}) exitWith {};
 		if !callSelf(isStationCraftValid) exitWith {callSelf(clearStationCraft)};
 		private _roll = refcreate(0);
@@ -140,17 +166,25 @@ class(LockWorkbench) extends(Workbench)
 		if (_success) then {
 			private _class = _recipe getv(result) getv(class);
 			private _outPos = getSelf(loc) modelToWorld [0,0,0.55];
-			if (_class == "Key") then {
+			if (count _repairData > 0) then {
+				delete(_repairData select 2);
+				private _lock = [_class,_outPos] call createItemInWorld;
+				setVar(_lock,keyTypes,array_copy(_repairData select 1));
+			} else { if (_class == "Key") then {
 				private _key = ["Key",_outPos] call createItemInWorld;
 				setVar(_key,keyOwner,array_copy(_keyData select 0));
 				setVar(_key,name,_keyData select 1);
 			} else {
 				[_class,_outPos,_keyData] call doorLock_createPair;
-			};
+			}};
 			callFuncParams(_usr,meSay,"создаёт " + (_recipe getv(name)));
 		} else {
 			callFuncParams(_usr,localSay,"Не получилось. Железяки испорчены." arg "error");
 		};
 		callSelf(clearStationCraft);
 	};
+endclass
+
+// Compatibility for content authored before ArtificerWorkbench was introduced.
+class(LockWorkbench) extends(ArtificerWorkbench)
 endclass

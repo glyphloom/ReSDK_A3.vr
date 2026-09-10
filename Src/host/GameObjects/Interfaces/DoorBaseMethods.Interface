@@ -50,10 +50,18 @@ func(onMainAction)
 {
 	objParams_1(_usr);
 	if isTypeOf(_usr,MobGhost) exitWith {
+		if (callSelf(getDoorProtectionGrade) == 3) exitWith {callFuncParams(_usr,localSay,"Эта дверь не пропускает даже духа." arg "error")};
 		callFuncParams(_usr,ghostBreakThroughDoor,this);
 	};
 	private _isOpen = getSelf(isOpen);
+	if (getSelf(isLocked)) exitWith {
+		callSelfParams(setDoorOpen,!_isOpen);
+		callFuncParams(_usr,localSay,"Дверь заперта." arg "error");
+	};
 	callSelfParams(setDoorOpen,!_isOpen);
+	if (_isOpen != getSelf(isOpen)) then {
+		callFuncParams(_usr,meSay,ifcheck(_isOpen,"закрывает дверь.","открывает дверь."));
+	};
 };
 
 var_num(lastDoorChangeOpenTime);
@@ -129,7 +137,58 @@ func(setDoorLock)
 func(onInteractWith)
 {
 	objParams_2(_with,_usr);
-	if isTypeOf(_with,DoorLock) then {callSelfParams(installDoorLock,_with arg _usr)};
+	if isTypeOf(_with,BrokenDoorLock) exitWith {callFuncParams(_usr,localSay,"Сначала надо починить замок на верстаке." arg "error")};
+	if isTypeOf(_with,DoorLock) exitWith {callSelfParams(installDoorLock,_with arg _usr)};
+	if isTypeOf(_with,Crowbar) exitWith {callSelfParams(startCrowbarWork,_usr arg _with)};
+};
+
+func(startCrowbarWork)
+{
+	objParams_2(_usr,_crowbar);
+	private _lock = getSelf(doorLock);
+	if (!equals(callFunc(_usr,getItemInActiveHandRedirect),_crowbar) || {callFuncParams(_usr,getDistanceTo,this) > 2}) exitWith {callFuncParams(_usr,localSay,"Нужен лом в активной руке и дверь рядом." arg "error")};
+	if (getSelf(isOpen)) exitWith {callFuncParams(_usr,localSay,"Дверь уже открыта." arg "error")};
+	if (!getSelf(isLocked) || {isNullReference(_lock)} || {!getVar(_lock,isFastened)}) exitWith {callFuncParams(_usr,localSay,"Лом здесь не нужен." arg "error")};
+	if (callFunc(_lock,lockGrade) == 3) exitWith {callFuncParams(_usr,localSay,"Эту дверь ломом не взять." arg "error")};
+	callFuncParams(_usr,meSay,"начинает отжимать дверь ломом.");
+	callFuncParams(_usr,startProgress,this arg "target.finishCrowbarWork" arg 6 arg INTERACT_PROGRESS_TYPE_FULL arg _crowbar);
+};
+
+func(finishCrowbarWork)
+{
+	objParams_2(_usr,_crowbar);
+	private _lock = getSelf(doorLock);
+	if (isNullReference(_crowbar) || {!isTypeOf(_crowbar,Crowbar)} || {!equals(callFunc(_usr,getItemInActiveHandRedirect),_crowbar)} || {callFuncParams(_usr,getDistanceTo,this) > 2}) exitWith {};
+	if (getSelf(isOpen) || {!getSelf(isLocked)} || {isNullReference(_lock)} || {!getVar(_lock,isFastened)} || {callFunc(_lock,lockGrade) == 3}) exitWith {};
+	private _grade = callFunc(_lock,lockGrade);
+	if (_grade == 2 && {!callSelf(isWoodenDoor)}) exitWith {
+		modVar(_crowbar,leftBreaked,-1);
+		callSelfParams(playSound,"ambient\common\creak" arg getRandomPitchInRange(0.8,1.05));
+		callFuncParams(_usr,addStaminaLoss,randInt(10,12));
+		callFuncParams(_usr,meSay,"с визгом срывает лом с металлической двери.");
+		callFuncParams(_usr,localSay,"Прочный замок и металл не поддаются." arg "error");
+		if (getVar(_crowbar,leftBreaked) <= 0) then {
+			delete(_crowbar);
+			callFuncParams(_usr,worldSay,"Ломик рассыпается." arg "act");
+		};
+	};
+	private _result = getRollType(callFuncParams(_usr,checkSkill,"ST" arg getSelf(stBreakBonus)));
+	callFuncParams(_usr,addStaminaLoss,randInt(10,12));
+	if !(_result in [DICE_SUCCESS,DICE_CRITSUCCESS]) exitWith {
+		if (_result == DICE_CRITFAIL) then {
+			delete(_crowbar);
+			callFuncParams(_usr,worldSay,"Ломик рассыпается." arg "act");
+		};
+		callFuncParams(_usr,meSay,"безуспешно отжимает дверь ломом.");
+	};
+	modVar(_crowbar,leftBreaked,-1);
+	if (_grade == 1) then {callFunc(_lock,breakLock)} else {callSelfParams(setDoorLock,false arg false)};
+	callSelfParams(setDoorOpen,true arg true);
+	callFuncParams(_usr,meSay,"вскрывает дверь ломом.");
+	if (getVar(_crowbar,leftBreaked) <= 0) then {
+		delete(_crowbar);
+		callFuncParams(_usr,worldSay,"Ломик рассыпается." arg "act");
+	};
 };
 
 func(onCrushingContact)
@@ -137,7 +196,6 @@ func(onCrushingContact)
 	objParams_1(_usr);
 
 	if isTypeOf(_usr,MobGhost) exitWith {};
-
 	#ifdef EDITOR
 		[format["(DOOR) Врезание в %1",getSelf(pointer)],"log"] call chatPrint;
 	#endif
@@ -152,6 +210,9 @@ func(onDoorKicked)
 {
 	objParams_2(_usr,_interactType);
 	FHEADER;
+	if (callSelf(getDoorProtectionGrade) == 3 && {_interactType != "knock"}) exitWith {
+		callFuncParams(_usr,localSay,"Эту дверь невозможно выломать." arg "error");
+	};
 	__GLOBAL_FLAG_SPECACT_KICK__ = true;
 
 	//Асс я тебе вытащил функцию для получения ноги. Проверяй её перед действием.

@@ -8,7 +8,13 @@
 // Both faces belong to the same item. Descriptor travels with the door chunk.
 doorLock_clearVisuals = {
 	params ["_door"];
-	{deleteVehicle _x} foreach (_door getVariable ["doorLockMeshes",[]]);
+	{
+		private _geom = _x getVariable ["ngo_geom",objNull];
+		if !isNullReference(_geom) then {deleteVehicle _geom};
+		_geom = _x getVariable ["srv_ngo_geom",objNull];
+		if !isNullReference(_geom) then {deleteVehicle _geom};
+		deleteVehicle _x;
+	} foreach (_door getVariable ["doorLockMeshes",[]]);
 	_door setVariable ["doorLockMeshes",[]];
 	_door setVariable ["doorLockVisualData",[]];
 };
@@ -17,7 +23,13 @@ doorLock_clearVisuals = {
 doorLock_setVisualsHidden = {
 	params ["_door","_hidden"];
 	_door setVariable ["doorLockVisualsHidden",_hidden];
-	{_x hideObject _hidden} foreach (_door getVariable ["doorLockMeshes",[]]);
+	{
+		_x hideObject _hidden;
+		private _geom = _x getVariable ["ngo_geom",objNull];
+		if !isNullReference(_geom) then {_geom hideObject _hidden};
+		_geom = _x getVariable ["srv_ngo_geom",objNull];
+		if !isNullReference(_geom) then {_geom hideObject _hidden};
+	} foreach (_door getVariable ["doorLockMeshes",[]]);
 };
 
 doorLock_updateVisuals = {

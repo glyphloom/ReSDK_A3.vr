@@ -43,3 +43,35 @@
       - {class: Key, destroy: false}
       - {class: Candle, destroy: false, condition: lightIsEnabled}
   result: {class: Key}
+
+- name: Починить простой замок
+  type: default
+  category: Other
+  options:
+    station: locks
+    skill_bonus: -2
+    craft_duration: from_skill(20,12)
+  required:
+    skills: {engineering: 11}
+    components:
+      - {class: BrokenDoorLock, destroy: false, condition: ':repairClass == "DoorLock"'}
+      - {class: 'MetalDebris(1-2)', count: 1, check_type_of: false}
+      - {class: Hammer, destroy: false}
+      - {class: Screwdriver, destroy: false}
+  result: {class: DoorLock}
+
+- name: Починить прочный замок
+  type: default
+  category: Other
+  options:
+    station: locks
+    skill_bonus: -4
+    craft_duration: from_skill(30,18)
+  required:
+    skills: {engineering: 15}
+    components:
+      - {class: BrokenDoorLock, destroy: false, condition: ':repairClass == "StrongDoorLock"'}
+      - {class: 'MetalDebris(1-2)', count: 2, check_type_of: false}
+      - {class: Hammer, destroy: false}
+      - {class: Screwdriver, destroy: false}
+  result: {class: StrongDoorLock}

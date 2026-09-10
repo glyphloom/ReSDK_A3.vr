@@ -357,18 +357,30 @@ cd_modelPosOnUpdate = {
 	_hit params ["_object","_point"];
 	private _text = "Наведи центр экрана на поверхность объекта";
 	if !isNullReference(_object) then {
-		private _owner = _object getVariable ["doorLockOwner",objNull];
+		private _face = _object getVariable ["ngo_src",_object];
+		private _owner = _face getVariable ["doorLockOwner",objNull];
 		if !isNullReference(_owner) then {
-			_text = "Наведи центр экрана на полотно двери, а не на замок";
+			private _formatVector = {"[" + ((_this apply {_x toFixed 4}) joinString ", ") + "]"};
+			private _facePos = (getPosWorldVisual _face) call _formatVector;
+			private _faceDir = (vectorDirVisual _face) call _formatVector;
+			private _faceUp = (vectorUpVisual _face) call _formatVector;
+			private _ownerPos = (getPosWorldVisual _owner) call _formatVector;
+			private _ownerDir = (vectorDirVisual _owner) call _formatVector;
+			private _ownerUp = (vectorUpVisual _owner) call _formatVector;
+			_text = format["lock face snapshot<br/>faceWorldPos = %1<br/>faceWorldDir = %2<br/>faceWorldUp = %3<br/>ownerWorldPos = %4<br/>ownerWorldDir = %5<br/>ownerWorldUp = %6<br/>Repeat during closed/moving/open states" arg _facePos arg _faceDir arg _faceUp arg _ownerPos arg _ownerDir arg _ownerUp];
 		} else {
 			private _selection = cd_modelPosSelection;
 			private _modelPoint = _object worldToModel _point;
 			private _formatVector = {"[" + ((_this apply {_x toFixed 4}) joinString ", ") + "]"};
 			_text = format["%1<br/>modelPosition = %2",(getModelInfo _object) select 0,_modelPoint call _formatVector];
+			private _installed = _object getVariable ["doorLockVisualData",[]];
+			if (count _installed > 0) then {
+				_text = _text + format["<br/>installedPosition = %1<br/>installedSelection = '%2'",(_installed select 2) call _formatVector,_installed select 3];
+			};
 			if (_selection == "" || {_selection in selectionNames _object}) then {
 				private _offset = _modelPoint;
 				if (_selection != "") then {_offset = _offset vectorDiff (_object selectionPosition _selection)};
-				_text = _text + format["<br/>lockSelection = '%1'<br/>lockPosition = %2",_selection,_offset call _formatVector];
+				_text = _text + format["<br/>candidateSelection = '%1'<br/>candidatePosition = %2",_selection,_offset call _formatVector];
 			} else {
 				_text = _text + "<br/>У этой модели нет указанного селекта";
 			};

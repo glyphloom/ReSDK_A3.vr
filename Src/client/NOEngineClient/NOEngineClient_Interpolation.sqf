@@ -195,7 +195,8 @@ noe_client_interp_start = {
 		_objects = [_sObj,_dObj];
 		private _doorLockData = _objTargetInfo getVariable ["doorLockVisualData",[]];
 		if (count _doorLockData > 0) then {
-			[_iObj,_doorLockData] call doorLock_updateVisuals;
+			private _lockMeshes = [_iObj,_doorLockData] call doorLock_updateVisuals;
+			{[_x,tolower (_doorLockData select 1)] call noe_client_ngo_check} foreach _lockMeshes;
 			_tEventOnDelete pushBack [[_iObj],doorLock_clearVisuals];
 		};
 

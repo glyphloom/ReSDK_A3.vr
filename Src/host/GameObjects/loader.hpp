@@ -90,7 +90,6 @@ loadFile("src\host\GameObjects\Structures\Lighting\Natural.sqf");
 loadFile("src\host\GameObjects\Structures\Furniture\Furniture.sqf");
 	loadFile("src\host\GameObjects\Structures\Furniture\Shelfs.sqf");
 	loadFile("src\host\GameObjects\Structures\Furniture\Tables.sqf");
-	loadFile("src\host\GameObjects\Structures\Tools\LockWorkbench.sqf");
 	loadFile("src\host\GameObjects\Structures\Furniture\Chairs.sqf");
 	loadFile("src\host\GameObjects\Structures\Furniture\Beds.sqf");
 	loadFile("src\host\GameObjects\Structures\Furniture\Benches.sqf");

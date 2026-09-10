@@ -1836,7 +1836,7 @@ function(goasm_attributes_handleProvider_door_lock)
 	{
 		private _default = [_data get "class",_memberName,true] call oop_getFieldBaseValue;
 		private _value = (_data get "customProps") getOrDefault [_memberName,_default];
-		_wid ctrlSetText (["Нет","Простой","Прочный","Сюжетный"] param [_value,"Простой"]);
+		_wid ctrlSetText (["Автоматически","Нет","Простой","Прочный","Сюжетный"] param [[-1,0,1,2,3] find _value,"Автоматически"]);
 	} call _setSyncValCode;
 	[BUTTON,[20,_optimalSizeH],_offsetMemX + 40,true] call _createElement;
 	_wid setVariable ["input",_input];
@@ -1848,13 +1848,14 @@ function(goasm_attributes_handleProvider_door_lock)
 			{
 				private _props = _data get "customProps";
 				private _default = [_data get "class",_memberName,true] call oop_getFieldBaseValue;
-				if (_indexContext == _default) then {_props deleteAt _memberName} else {_props set [_memberName,_indexContext]};
+				private _value = [-1,0,1,2,3] select _indexContext;
+				if (_value == _default) then {_props deleteAt _memberName} else {_props set [_memberName,_value]};
 				[_memberName,"cprov"] call goilb_setBatchMode;
 				[_objWorld,_data,true] call golib_setHashData;
 				call (_wid getVariable "_onSync");
 			} call (_wid getVariable "_setContext");
 		};
-		private _entries = ["Нет","Простой","Прочный","Сюжетный"] apply {[_x,_choose]};
+		private _entries = ["Автоматически","Нет","Простой","Прочный","Сюжетный"] apply {[_x,_choose]};
 		[_entries,call mouseGetPosition,[_wid]] call contextMenu_create;
 	} call _setOnPressCode;
 }

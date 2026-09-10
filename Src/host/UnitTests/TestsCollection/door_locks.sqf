@@ -59,3 +59,35 @@ TEST(StrongLockDoesNotMakePiercingImmune)
 	delete(_grid);
 	delete(_gate);
 }
+
+TEST(DoorLockDefaultsAndStoryProtection)
+{
+	private _wood = new(WoodenDoor);
+	private _steel = new(SteelGridDoor);
+	EXPECT_EQ(callFunc(_wood,resolveDoorLockType),0);
+	setVar(_wood,keyTypes,["house"]);
+	EXPECT_EQ(callFunc(_wood,resolveDoorLockType),1);
+	setVar(_wood,lockType,0);
+	EXPECT_EQ(callFunc(_wood,resolveDoorLockType),0);
+
+	{
+		private _story = new(StoryDoorLock);
+		setVar(_story,isFastened,true);
+		setVar(_story,door,_x);
+		setVar(_x,doorLock,_story);
+		private _hp = getVar(_x,hp);
+		callFuncParams(_x,applyDamage,100 arg DAMAGE_TYPE_BLAST);
+		EXPECT_EQ(getVar(_x,hp),_hp);
+		EXPECT_EQ(callFunc(_x,getDoorProtectionGrade),3);
+		setVar(_x,isLocked,false);
+		setVar(_x,isOpen,true);
+		callFuncParams(_x,applyDamage,100 arg DAMAGE_TYPE_BLAST);
+		EXPECT_EQ(getVar(_x,hp),_hp);
+		setVar(_x,doorLock,nullPtr);
+		setVar(_story,door,nullPtr);
+		delete(_story);
+	} foreach [_wood,_steel];
+
+	delete(_wood);
+	delete(_steel);
+}

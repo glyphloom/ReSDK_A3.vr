@@ -16,7 +16,10 @@ noe_client_updateDoorLock = {
 		if ((noe_client_allPointers getOrDefault [_ptr,objNull]) in _old) then {noe_client_allPointers deleteAt _ptr};
 	};
 	private _meshes = [_door,_data] call doorLock_updateVisuals;
-	if (count _meshes > 0) then {noe_client_allPointers set [_data select 0,_meshes select 0]};
+	if (count _meshes > 0) then {
+		{[_x,tolower (_data select 1)] call noe_client_ngo_check} foreach _meshes;
+		noe_client_allPointers set [_data select 0,_meshes select 0];
+	};
 };
 
 decl(mesh(...any[]))
@@ -379,4 +382,3 @@ noe_client_getObjPtr = {
 	};
 	_obj getvariable ["ref",""];
 };
-
