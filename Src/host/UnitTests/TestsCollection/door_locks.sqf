@@ -53,7 +53,8 @@ TEST(DoorLockSelectionBasisTransformsRoundTrip)
 	private _world = [_basis,_source] call doorLock_transformVector;
 	private _roundTrip = [_basis,_world] call doorLock_inverseTransformVector;
 	EXPECT(vectorMagnitude (_roundTrip vectorDiff _source) < 0.00001);
-	EXPECT(abs ((([_basis,[0,0,1]] call doorLock_transformVector) select 2) - 1) < 0.00001);
+	private _vertical = [_basis,[0,0,1]] call doorLock_transformVector;
+	EXPECT(abs ((_vertical select 2) - 1) < 0.00001);
 }
 
 TEST(StrongLockDoesNotMakePiercingImmune)
