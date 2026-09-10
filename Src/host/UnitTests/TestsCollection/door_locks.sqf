@@ -27,8 +27,8 @@ TEST(KeyAccessSets)
 
 TEST(DoorLockFaceTransformIsVerticalAndOpposed)
 {
-	private _front = [0,0,1] call doorLock_getFaceTransform;
-	private _back = [0,0,-1] call doorLock_getFaceTransform;
+	private _front = [0,1] call doorLock_getFaceTransform;
+	private _back = [0,-1] call doorLock_getFaceTransform;
 	_front params ["_frontDir","_frontUp"];
 	_back params ["_backDir","_backUp"];
 
@@ -38,9 +38,9 @@ TEST(DoorLockFaceTransformIsVerticalAndOpposed)
 	EXPECT(abs ((_backDir select 2) - 1) < 0.00001);
 	EXPECT(vectorMagnitude (_frontUp vectorAdd _backUp) < 0.00001);
 
-	private _tilted = [35,12,1] call doorLock_getFaceTransform;
-	EXPECT(abs ((_tilted select 0) vectorDotProduct (_tilted select 1)) < 0.00001);
-	EXPECT(((_tilted select 0) select 2) > 0.97);
+	private _rotated = [35,1] call doorLock_getFaceTransform;
+	EXPECT(abs ((_rotated select 0) vectorDotProduct (_rotated select 1)) < 0.00001);
+	EXPECT_EQ(_rotated select 0,[0,0,1]);
 }
 
 TEST(StrongLockDoesNotMakePiercingImmune)

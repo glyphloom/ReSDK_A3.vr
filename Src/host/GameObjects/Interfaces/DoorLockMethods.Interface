@@ -95,7 +95,7 @@ func(syncDoorLockVisual)
 	private _lock = getSelf(doorLock);
 	if !isNullReference(_lock) then {
 		callSelf(getLockPlacementData) params ["_position","_selection"];
-		_data = [getVar(_lock,pointer),getVar(_lock,model),_position,_selection,getSelf(lockDepth),getSelf(lockDirection),ifcheck(callFunc(_lock,lockGrade) == 0,12,0)];
+		_data = [getVar(_lock,pointer),getVar(_lock,model),_position,_selection,getSelf(lockDepth),getSelf(lockDirection)];
 	};
 	_mesh setVariable ["doorLockData",_data];
 	private _visuals = [_mesh,_data] call doorLock_updateVisuals;

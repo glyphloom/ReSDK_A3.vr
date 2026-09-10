@@ -33,10 +33,10 @@ doorLock_setVisualsHidden = {
 };
 
 doorLock_getFaceTransform = {
-	params ["_yaw","_tilt","_side"];
+	params ["_yaw","_side"];
 	private _angle = _yaw + ifcheck(_side == 1,0,180);
 	[
-		[cos _angle * sin _tilt,-sin _angle * sin _tilt,cos _tilt],
+		[0,0,1],
 		[sin _angle,cos _angle,0]
 	]
 };
@@ -49,13 +49,13 @@ doorLock_updateVisuals = {
 	[_door] call doorLock_clearVisuals;
 	_door setVariable ["doorLockVisualData",_data];
 	if (count _data == 0) exitWith {[]};
-	_data params ["_pointer","_model","_position","_selection","_depth","_yaw","_tilt"];
+	_data params ["_pointer","_model","_position","_selection","_depth","_yaw"];
 	private _meshes = [];
 	{
 		private _mesh = createMesh([_model arg [0 arg 0 arg 0] arg true]);
 		private _offset = _position vectorAdd [sin _yaw * _depth * _x,cos _yaw * _depth * _x,0];
 		_mesh attachTo [_door,_offset,_selection,true];
-		_mesh setVectorDirAndUp ([_yaw,_tilt,_x] call doorLock_getFaceTransform);
+		_mesh setVectorDirAndUp ([_yaw,_x] call doorLock_getFaceTransform);
 		_mesh setVariable ["ref",_pointer];
 		_mesh setVariable ["doorLockOwner",_door];
 		_mesh disableCollisionWith _door;
