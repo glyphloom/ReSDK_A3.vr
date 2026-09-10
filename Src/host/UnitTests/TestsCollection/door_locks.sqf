@@ -25,6 +25,24 @@ TEST(KeyAccessSets)
 	} foreach _cases;
 }
 
+TEST(DoorLockFaceTransformIsVerticalAndOpposed)
+{
+	private _front = [0,0,1] call doorLock_getFaceTransform;
+	private _back = [0,0,-1] call doorLock_getFaceTransform;
+	_front params ["_frontDir","_frontUp"];
+	_back params ["_backDir","_backUp"];
+
+	EXPECT(abs (_frontDir vectorDotProduct _frontUp) < 0.00001);
+	EXPECT(abs (_backDir vectorDotProduct _backUp) < 0.00001);
+	EXPECT(abs ((_frontDir select 2) - 1) < 0.00001);
+	EXPECT(abs ((_backDir select 2) - 1) < 0.00001);
+	EXPECT(vectorMagnitude (_frontUp vectorAdd _backUp) < 0.00001);
+
+	private _tilted = [35,12,1] call doorLock_getFaceTransform;
+	EXPECT(abs ((_tilted select 0) vectorDotProduct (_tilted select 1)) < 0.00001);
+	EXPECT(((_tilted select 0) select 2) > 0.97);
+}
+
 TEST(StrongLockDoesNotMakePiercingImmune)
 {
 	// Virtual objects only: no world meshes, targeting, sounds or animation.
