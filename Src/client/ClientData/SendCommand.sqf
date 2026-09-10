@@ -402,23 +402,6 @@ localCommand("modelpos")
 	};
 };
 
-localCommand("diaggeom")
-{
-	private _modeName = tolower arguments;
-	private _modes = createHashMapFromArray [
-		["normal","Normal"],
-		["geometry","Geometry"],
-		["view","ViewGeometry"],
-		["viewgeometry","ViewGeometry"],
-		["fire","FireGeometry"],
-		["firegeometry","FireGeometry"],
-		["wire","Wire"]
-	];
-	private _mode = _modes getOrDefault [_modeName,""];
-	if (_mode == "") exitWith {["diaggeom normal|geometry|view|fire|wire. Только Arma diagnostic executable: multiplayer в нём отключён; режим относится ко всей сцене, а не к объекту под курсором.","system"] call chatPrint};
-	[format["diag_drawMode '%1': запрос отправлен движку. Работает только в Arma diagnostic executable (multiplayer отключён) и меняет отображение всей сцены; wire циклически переключает режим." arg _mode],"system"] call chatPrint;
-	diag_drawMode _mode;
-};
 #endif
 
 decl(mesh) cd_geomBoundsObject = objNull;
