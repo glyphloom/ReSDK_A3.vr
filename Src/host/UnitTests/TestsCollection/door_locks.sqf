@@ -40,7 +40,10 @@ TEST(DoorLockFaceTransformIsVerticalAndOpposed)
 
 	private _rotated = [35,1] call doorLock_getFaceTransform;
 	EXPECT(abs ((_rotated select 0) vectorDotProduct (_rotated select 1)) < 0.00001);
-	EXPECT_EQ(_rotated select 0,[0,0,1]);
+	private _rotatedDir = _rotated select 0;
+	EXPECT(abs (_rotatedDir select 0) < 0.00001);
+	EXPECT(abs (_rotatedDir select 1) < 0.00001);
+	EXPECT(abs ((_rotatedDir select 2) - 1) < 0.00001);
 }
 
 TEST(StrongLockDoesNotMakePiercingImmune)
